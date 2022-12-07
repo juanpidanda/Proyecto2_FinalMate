@@ -13,7 +13,7 @@ public enum EnemyStates
     ATTACK,
     DEATH
 }
-public class EnemyBehaviour : MonoBehaviour
+public class EnemyBehaviourVersionJuanpi : MonoBehaviour
 {
     public EnemyStates enemyState;
 
