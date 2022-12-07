@@ -1,17 +1,19 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using UnityEngine;
 using UnityEngine.InputSystem;
 public class CharacterController : MonoBehaviour
 {
 
- 
-        [Header("MOVEMENT")]
 
-       public float MoveSpeed;
+    [Header("MOVEMENT")]
+
+    public float MoveSpeed;
     private Vector2 CurMovementInput;
     public float JumpForce;
     public LayerMask GroundLayerMask;
+    public float Runspeed;
 
     [Header("LOOK")]
 
@@ -48,14 +50,14 @@ public class CharacterController : MonoBehaviour
         dir.y = Rig.velocity.y;
         Rig.velocity = dir;
     }
-     void CameraLook()
+    void CameraLook()
     {
         CAmCurXrot += MouseDelta.y * LookSensitivity;
         CAmCurXrot = Mathf.Clamp(CAmCurXrot, minXLook, MaxXLook);
         CameraContainer.localEulerAngles = new Vector3(-CAmCurXrot, 0, 0);
         transform.eulerAngles += new Vector3(0, MouseDelta.x * LookSensitivity, 0);
     }
-   public void OnlookInput(InputAction.CallbackContext context)
+    public void OnlookInput(InputAction.CallbackContext context)
     {
         MouseDelta = context.ReadValue<Vector2>();
     }
@@ -71,36 +73,49 @@ public class CharacterController : MonoBehaviour
             CurMovementInput = Vector2.zero;
         }
     }
+    public void OnRunInput(InputAction.CallbackContext context)
+    {
+        if (MoveSpeed >= 7)
+        {
+            MoveSpeed = 5f;
+        }
+        else if (MoveSpeed <= 7)
+        {
+            MoveSpeed = Runspeed * 2f;
+
+        }
+
+    }
     public void OnJumpIput(InputAction.CallbackContext context)
     {
         Rig.AddForce(new Vector3(0, JumpForce), ForceMode.Impulse);
     }
-  /*  bool IsGrounded()
-    {
-        Ray[] rays = new Ray[4]
-        {
-            new Ray (transform.position+(transform.forward*.2f)+(Vector3.up*.01f),Vector3.down ),
-            new Ray (transform.position+(-transform.forward*.2f)+(Vector3.up*.01f),Vector3.down ),
-            new Ray (transform.position+(transform.right*.2f)+(Vector3.up*.01f),Vector3.down ),
-            new Ray (transform.position+(-transform.right*.2f)+(Vector3.up*.01f),Vector3.down ),
-        };
-        for (int i = 0; i < rays.Length; i++)
-        {
-            if (Physics.Raycast(rays[i], 0.1f, GroundLayerMask))
-            {
-                return true;
-            }
+    /*  bool IsGrounded()
+      {
+          Ray[] rays = new Ray[4]
+          {
+              new Ray (transform.position+(transform.forward*.2f)+(Vector3.up*.01f),Vector3.down ),
+              new Ray (transform.position+(-transform.forward*.2f)+(Vector3.up*.01f),Vector3.down ),
+              new Ray (transform.position+(transform.right*.2f)+(Vector3.up*.01f),Vector3.down ),
+              new Ray (transform.position+(-transform.right*.2f)+(Vector3.up*.01f),Vector3.down ),
+          };
+          for (int i = 0; i < rays.Length; i++)
+          {
+              if (Physics.Raycast(rays[i], 0.1f, GroundLayerMask))
+              {
+                  return true;
+              }
 
-        }
+          }
 
-        return false;
-    }
-    private void OnDrawGizmos()
-    {
-        Gizmos.color = Color.red;
-        Gizmos.DrawRay(transform.position + (transform.forward * .2f), Vector3.down);
-        Gizmos.DrawRay(transform.position + (-transform.forward * .2f), Vector3.down);
-        Gizmos.DrawRay(transform.position + (transform.right * .2f), Vector3.down);
-        Gizmos.DrawRay(transform.position + (-transform.right * .2f), Vector3.down);
-    }*/
+          return false;
+      }
+      private void OnDrawGizmos()
+      {
+          Gizmos.color = Color.red;
+          Gizmos.DrawRay(transform.position + (transform.forward * .2f), Vector3.down);
+          Gizmos.DrawRay(transform.position + (-transform.forward * .2f), Vector3.down);
+          Gizmos.DrawRay(transform.position + (transform.right * .2f), Vector3.down);
+          Gizmos.DrawRay(transform.position + (-transform.right * .2f), Vector3.down);
+      }*/
 }

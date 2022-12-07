@@ -24,15 +24,6 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "Fire",
-                    "type": "Button",
-                    "id": "40e6485d-5a3f-4153-81d0-2ab1ce22d8c5",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false
-                },
-                {
                     "name": "Look",
                     "type": "Value",
                     "id": "1f132c9f-1e26-4d51-ad8b-4fe964260f82",
@@ -42,12 +33,12 @@
                     "initialStateCheck": true
                 },
                 {
-                    "name": "Pause",
-                    "type": "Button",
-                    "id": "9a41891b-2e7f-4dba-9b65-75bfab6eba57",
+                    "name": "Run",
+                    "type": "PassThrough",
+                    "id": "2e55a2c1-2a17-4dee-bae1-3477ed9f76af",
                     "expectedControlType": "Button",
                     "processors": "",
-                    "interactions": "",
+                    "interactions": "Press",
                     "initialStateCheck": false
                 }
             ],
@@ -120,17 +111,6 @@
                 },
                 {
                     "name": "",
-                    "id": "095d4087-9c89-46cf-a154-81d02f78d98f",
-                    "path": "<Mouse>/leftButton",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Fire",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
                     "id": "4bc92c52-d67a-4862-9d00-b6b584d94c46",
                     "path": "<Mouse>/delta",
                     "interactions": "",
@@ -142,12 +122,12 @@
                 },
                 {
                     "name": "",
-                    "id": "a4ff9011-e933-49bb-9654-3ce8189c4055",
-                    "path": "<Keyboard>/escape",
+                    "id": "231433d6-78bb-440b-a0f8-5053bf0567f9",
+                    "path": "<Keyboard>/shift",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Pause",
+                    "action": "Run",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
