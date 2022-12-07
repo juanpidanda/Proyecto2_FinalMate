@@ -2,128 +2,213 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+
+public enum EnemyStates
+{
+    SETTING,
+    READY,
+    IDLE,
+    PATROL,
+    FOLLOW,
+    ATTACK,
+    DEATH
+}
 public class EnemyBehaviour : MonoBehaviour
 {
-    public float speed;
-    public Transform[] wayPoints;
-    private int wpIndex = 0;
-    private int wpNum = 0;
-    public int BulletVelocity = 0;
-    public Transform target;
-    public GameObject bulletPrefab;
+    public EnemyStates enemyState;
 
-    public enum State { patrolling, seeking, attacking };
-    public State enemyState;
+    [Header("Enemy Stats")]
+    public EnemyStats enemyStats;
 
-    public float seekRange, attackRange;
+    [Header("Player Variables")]
+    public GameObject player;
+    public float distanceFromPlayer;
 
-    void Start()
+    [Header("Patrolling Points")]
+    public bool enemyCanPatrol;
+    public GameObject[] waypoints;
+    private int nextWaypoint;
+
+    [Header("Nav Mesh")]
+    private NavMeshController navMeshController;
+
+    private void Awake()
     {
-        wpNum = wayPoints.Length;
-        enemyState = State.patrolling;
-        seekRange = .8f * transform.Find("SeekRange").localScale.x;
-        attackRange = 1.2f * transform.Find("AttackRange").localScale.x;
+        SetNewEnemyState(EnemyStates.SETTING);
     }
 
-    void Update()
+    void SetEnemy()
     {
-        float angle = 60;
-        DrawCone(60);
-        Vector3 PE = (target.position - transform.position).normalized;
-        float dotprod = Vector3.Dot(PE, transform.forward);
-        float coseno = Mathf.Cos(angle * Mathf.Deg2Rad);
-        float dist = Vector3.Distance(target.position, transform.position);
-        ChangeState();
+        navMeshController = GetComponent<NavMeshController>();
+        navMeshController.SetAgentSpeed(enemyStats.enemySpeed);
 
-        // if(coseno < dotprod && dist < 20f)
-
-        if (enemyState == State.patrolling)
-            Patroll();
-
-        if (enemyState == State.seeking)
-            Seek();
-
-        if (enemyState == State.attacking)
-            Attack();
-
-    }
-
-    private void GoTo(Vector3 targetPosition)
-    {
-        Vector3 direction = targetPosition - transform.position;
-        float dt = Time.deltaTime;
-        transform.rotation = Quaternion.LookRotation(direction.normalized, transform.up);
-        transform.Translate(transform.forward * dt * speed, Space.World);
-
-    }
-
-    private void Patroll()
-    {
-        Vector3 targetPosition = wayPoints[wpIndex].position;
-        GoTo(targetPosition);
-        float distance = Vector3.Distance(targetPosition, transform.position);
-        if (distance < 0.5f)
+        player = GameObject.FindGameObjectWithTag("Player");
+        if (enemyCanPatrol)
         {
-            wpIndex++;
-            if (wpIndex == wpNum) { wpIndex = 0; }
+            waypoints = GameObject.FindGameObjectsWithTag("Waypoint");
+
+        }
+        SetNewEnemyState(EnemyStates.READY);
+    }
+
+    void SetNewEnemyState(EnemyStates stateToSet)
+    {
+        EnemyStateEndPhase();
+        enemyState = stateToSet;
+        EnemyStateStartPhase();
+
+    }
+
+    void EnemyStateStartPhase()
+    {
+        switch (enemyState)
+        {
+            case EnemyStates.SETTING:
+                SetEnemy();
+                break;
+            case EnemyStates.READY:
+                gameObject.SetActive(true);
+                SetNewEnemyState(EnemyStates.IDLE);
+                break;
+            case EnemyStates.IDLE:
+                break;
+            case EnemyStates.PATROL:
+                SetRandomWaypoint();
+                break;
+            case EnemyStates.FOLLOW:
+                break;
+            case EnemyStates.ATTACK:
+                break;
+            case EnemyStates.DEATH:
+                break;
         }
     }
 
-    private void Attack()
+    void EnemyStateEndPhase()
     {
-        if (GameObject.FindWithTag("EnemyAttack") == null)
+        switch (enemyState)
         {
-            Vector3 direction = target.position - transform.position;
-            transform.rotation = Quaternion.LookRotation(direction.normalized, transform.up);
-            GameObject gO = Instantiate(bulletPrefab, transform.position, transform.rotation);
-            gO.GetComponent<Rigidbody>().velocity = BulletVelocity * transform.forward;
-            Destroy(gO, 2f);
+            case EnemyStates.SETTING:
+                break;
+            case EnemyStates.READY:
+                break;
+            case EnemyStates.IDLE:
+                break;
+            case EnemyStates.PATROL:
+                navMeshController.StopAgent();
+                break;
+            case EnemyStates.FOLLOW:
+                navMeshController.StopAgent();
+                break;
+            case EnemyStates.ATTACK:
+                break;
+            case EnemyStates.DEATH:
+                navMeshController.StopAgent();
+                break;
         }
     }
 
-    /*  private void HeavyAttack()
-      {
-          if (GameObject.FindWithTag("EnemyAttack") == null)
-          {
-              Vector3 direction = target.position - transform.position;
-              transform.rotation = Quaternion.LookRotation(direction.normalized, transform.up);
-              GameObject gO = Instantiate(bulletPrefab, transform.position, transform.rotation);
-              gO.GetComponent<Rigidbody>().velocity = BulletVelocity * transform.forward;
-              gO.GetComponent.localaScale
-              Destroy(gO, 2f);
-          }
-      }*/
-    private void Seek()
-    {
-        Vector3 targetPosition = target.position;
-        GoTo(targetPosition);
-    }
 
-    private void ChangeState()
+    private void Update()
     {
-        float distance = Vector3.Distance(transform.position, target.position);
-
-        if (distance > seekRange)
+        if(player != null)
         {
-            enemyState = State.patrolling;
+            distanceFromPlayer = Vector3.Distance(gameObject.transform.position, player.transform.position);
         }
 
-        if (distance < seekRange && distance > attackRange)
+        EnemyStateMachineManager();
+    }
+
+    void EnemyStateMachineManager()
+    {
+        switch (enemyState)
         {
-            enemyState = State.seeking;
+            case EnemyStates.IDLE:
+                CheckIfPlayerIsNearVisionRange();
+                break;
+            case EnemyStates.PATROL:
+                if (navMeshController.HasArrived())
+                {
+                    SetRandomWaypoint();
+                }
+                break;
+            case EnemyStates.FOLLOW:
+                FollowPlayer();
+                break;
+            case EnemyStates.ATTACK:
+                break;
+        }
+        CheckStateConditions();
+    }
+
+    void SetRandomWaypoint()
+    {
+        nextWaypoint = Random.Range(0, waypoints.Length);
+        navMeshController.SetNextAgentObjective(waypoints[nextWaypoint]);
+    }
+
+    void FollowPlayer()
+    {
+        navMeshController.SetNextAgentObjective(player);
+        transform.LookAt(new Vector3(player.transform.position.x, transform.position.y, player.transform.position.z));
+    }
+
+    void CheckStateConditions()
+    {
+        switch (enemyState)
+        {
+            case EnemyStates.IDLE:
+                if (enemyCanPatrol)
+                {
+                    SetNewEnemyState(EnemyStates.PATROL);
+                }
+                break;
+            case EnemyStates.PATROL:
+                CheckIfPlayerIsNearVisionRange();
+                break;
+            case EnemyStates.FOLLOW:
+                if (PlayerGetAway())
+                {
+                    SetNewEnemyState(EnemyStates.IDLE);
+                }
+                break;
+            case EnemyStates.ATTACK:
+                break;
         }
 
-        if (distance < attackRange)
+        if(enemyStats.enemyHitPoints <= 0)
         {
-            enemyState = State.attacking;
+            SetNewEnemyState(EnemyStates.DEATH);
         }
     }
-    void DrawCone(float angle)
+
+    void CheckIfPlayerIsNearVisionRange()
     {
-        angle *= Mathf.Deg2Rad;
-        Vector3 right = transform.forward * Mathf.Cos(angle) + transform.right * Mathf.Sin(angle);
-        Vector3 left = transform.forward * Mathf.Cos(angle) + transform.right * Mathf.Sin(angle);
-        Debug.DrawRay(transform.position, 50 * right.normalized);
-        Debug.DrawRay(transform.position, 50 * left.normalized);
+        if(distanceFromPlayer <= enemyStats.enemyVisionRange)
+        {
+            SetNewEnemyState(EnemyStates.FOLLOW);
+        }
     }
+    bool PlayerGetAway()
+    {
+        if(distanceFromPlayer > enemyStats.enemyVisionRange)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+
+}
+[System.Serializable]
+public class EnemyStats
+{
+    public int enemyHitPoints;
+    public float enemySpeed;
+    public float enemyVisionRange;
+    public float enemyAttackRange;
+    public float attackCooldown;
 }
