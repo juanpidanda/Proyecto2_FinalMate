@@ -515,7 +515,7 @@ GameObject:
   - component: {fileID: 1319941607}
   m_Layer: 0
   m_Name: Target
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1860,7 +1860,7 @@ MonoBehaviour:
   wayPoints:
   - {fileID: 718952651475860813}
   - {fileID: 718952651984116711}
-  BulletVelocity: 0
+  BulletVelocity: 20
   target: {fileID: 1319941603}
   bulletPrefab: {fileID: 8842356186556592932, guid: d637458dde9d46046b4a011eae808db6, type: 3}
   enemyState: 0
