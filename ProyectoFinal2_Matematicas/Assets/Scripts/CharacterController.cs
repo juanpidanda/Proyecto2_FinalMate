@@ -15,6 +15,10 @@ public class CharacterController : MonoBehaviour
     public LayerMask GroundLayerMask;
     public float Runspeed;
 
+    public bool hasJump;
+    public float jumpCooldown;
+    private float timeSinceLastJump;
+
     [Header("LOOK")]
 
     public Transform CameraContainer;
@@ -34,10 +38,19 @@ public class CharacterController : MonoBehaviour
     private void Start()
     {
         Cursor.lockState = CursorLockMode.Locked;
+        hasJump = false;
     }
     private void FixedUpdate()
     {
         Move();
+        if (hasJump)
+        {
+            timeSinceLastJump += Time.deltaTime;
+            if(timeSinceLastJump >= jumpCooldown)
+            {
+                hasJump = false;
+            }
+        }
     }
     private void LateUpdate()
     {
@@ -88,7 +101,12 @@ public class CharacterController : MonoBehaviour
     }
     public void OnJumpIput(InputAction.CallbackContext context)
     {
-        Rig.AddForce(new Vector3(0, JumpForce), ForceMode.Impulse);
+        if(!hasJump)
+        {
+            Rig.AddForce(new Vector3(0, JumpForce, 0), ForceMode.Impulse);
+            timeSinceLastJump = 0;
+            hasJump = true;
+        }
     }
     /*  bool IsGrounded()
       {

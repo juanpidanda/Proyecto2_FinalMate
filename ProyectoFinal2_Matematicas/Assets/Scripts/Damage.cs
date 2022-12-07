@@ -9,8 +9,11 @@ public class Damage : MonoBehaviour
     public int damage;
     public float damageTime;
     float CurrentDamage;
+
+    float bulletLifeTime;
     void Start()
     {
+        bulletLifeTime = 0.0f;
         PlayerHealth = GameObject.FindWithTag("Player").GetComponent<PlayerHealth>();
     }
 
@@ -20,12 +23,17 @@ public class Damage : MonoBehaviour
         {
 
             PlayerHealth.health += damage;
+            Destroy(gameObject);
         }
 
     }
     // Update is called once per frame
     void Update()
     {
-
+        bulletLifeTime += Time.deltaTime;
+        if (bulletLifeTime >= 4.0f)
+        {
+            Destroy(gameObject);
+        }
     }
 }
